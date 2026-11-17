@@ -1,3 +1,9 @@
+> **MicroSlate dual-boot build of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader).** Same reader,
+> plus a "MicroSlate" entry on the home screen when [MicroSlate](https://github.com/Josh-writes/microslate-firmware) is
+> installed next to it, and no self-updating there (MicroSlate installs CrossPoint updates so they never overwrite it).
+> MicroSlate installs this build from its own menu on the reTerminal Sticky and Xteink X4 Pro. **Reader issues and credit
+> belong upstream at crosspoint-reader/crosspoint-reader**; issues about switching or installing go to microslate-firmware.
+
 # CrossPoint Reader
 
 [![Fund contributors](https://img.shields.io/badge/%F0%9F%91%91_Fund_contributors-royalty.dev-BB953A?style=for-the-badge&labelColor=1a1a1a)](https://app.royalty.dev/crosspoint-reader/crosspoint-reader)
