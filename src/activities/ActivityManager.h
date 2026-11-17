@@ -18,7 +18,8 @@
 class Activity;    // forward declaration
 class RenderLock;  // forward declaration
 
-enum class HomeMenuItem { NONE, FILE_BROWSER, LIBRARY, OPDS_BROWSER, FILE_TRANSFER, SETTINGS_MENU };
+// MICROSLATE: back to MicroSlate, listed last and only when MicroSlate is in the other app slot (dual boot).
+enum class HomeMenuItem { NONE, FILE_BROWSER, LIBRARY, OPDS_BROWSER, FILE_TRANSFER, SETTINGS_MENU, MICROSLATE };
 
 /**
  * ActivityManager

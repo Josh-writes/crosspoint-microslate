@@ -17,6 +17,7 @@
 
 #include "FirmwareBoardTag.h"
 #include "FirmwareFlasher.h"
+#include "microslate_switch.h"
 
 namespace {
 constexpr char latestReleaseUrl[] = "https://api.github.com/repos/crosspoint-reader/crosspoint-reader/releases/latest";
@@ -137,6 +138,10 @@ bool OtaUpdater::isUpdateNewer() const {
 const std::string& OtaUpdater::getLatestVersion() const { return latestVersion; }
 
 OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback onProgress, void* ctx) {
+  // Next to MicroSlate the next update partition is MicroSlate's slot; MicroSlate installs updates.
+  // cppcheck sees microslate_switch.h's host stubs (no ESP-IDF headers), where this is constant.
+  // cppcheck-suppress knownConditionTrueFalse
+  if (!msswitch::selfUpdateAllowed()) return INTERNAL_UPDATE_ERROR;
   if (!isUpdateNewer()) {
     return UPDATE_OLDER_ERROR;
   }

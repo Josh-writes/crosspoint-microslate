@@ -14,6 +14,7 @@
 
 #include "FirmwareBoardTag.h"
 #include "OtaBootSwitch.h"
+#include "microslate_switch.h"
 
 namespace firmware_flash {
 
@@ -273,6 +274,10 @@ Result validateImageFile(const char* sdPath, size_t partitionSize) {
 }
 
 Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, bool alreadyValidated) {
+  // Every flash path ends here: next to MicroSlate the "next" partition is MicroSlate's slot.
+  // cppcheck sees microslate_switch.h's host stubs (no ESP-IDF headers), where this is constant.
+  // cppcheck-suppress knownConditionTrueFalse
+  if (!msswitch::selfUpdateAllowed()) return Result::NO_PARTITION;
   // Resolve destination first so we can size-check during validation. The full image-integrity
   // pass below verifies header, segment table, XOR checksum and SHA256 trailer end-to-end before
   // we touch otadata, so a truncated/corrupted .bin can never become the next boot target.

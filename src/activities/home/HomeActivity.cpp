@@ -25,6 +25,7 @@
 #include "RecentBooksStore.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "microslate_switch.h"
 
 int HomeActivity::getMenuItemCount() const {
   int count = 4;  // File Browser, Library, File transfer, Settings
@@ -32,6 +33,9 @@ int HomeActivity::getMenuItemCount() const {
     count += recentBooks.size();
   }
   if (hasLibrarySlot()) {
+    count++;
+  }
+  if (hasMicroSlate) {
     count++;
   }
   return count;
@@ -235,6 +239,8 @@ void HomeActivity::onEnter() {
   // from inside the Plugins screen (or users can sideload plugins manually).
   hasPlugins = SETTINGS.pluginsEnabled != 0;
 
+  hasMicroSlate = msswitch::microslatePresent();
+
   const auto& metrics = UITheme::getInstance().getMetrics();
   if (UITheme::getInstance().hasCoverGridHome()) {
     // Screen-lifetime interaction tables and component properties exceed the stack budget.
@@ -246,7 +252,7 @@ void HomeActivity::onEnter() {
   if (coverGridUi) {
     fillCoverGridFromLibrary();
     resolveGridCoverPaths();
-    coverGridUi->begin(recentBooks, hasLibrarySlot(), hasContinueReading);
+    coverGridUi->begin(recentBooks, hasLibrarySlot(), hasContinueReading, hasMicroSlate);
   }
 
   const auto base = static_cast<int>(recentBooks.size());
@@ -311,7 +317,7 @@ void HomeActivity::loop() {
       return;
     }
     const int menuIndex = selectorIndex - static_cast<int>(recentBooks.size());
-    switch (indexToMenuItem(menuIndex, hasLibrarySlot())) {
+    switch (indexToMenuItem(menuIndex, hasLibrarySlot(), hasMicroSlate)) {
       case HomeMenuItem::FILE_BROWSER:
         onFileBrowserOpen();
         break;
@@ -326,6 +332,9 @@ void HomeActivity::loop() {
         break;
       case HomeMenuItem::SETTINGS_MENU:
         onSettingsOpen();
+        break;
+      case HomeMenuItem::MICROSLATE:
+        msswitch::openMicroSlate();
         break;
       default:
         break;
@@ -527,6 +536,11 @@ void HomeActivity::render(RenderLock&&) {
   std::vector<const char*> menuItems = {tr(STR_BROWSE_FILES), tr(STR_LIBRARY), tr(STR_FILE_TRANSFER),
                                         tr(STR_SETTINGS_TITLE)};
   std::vector<UIIcon> menuIcons = {Folder, Library, Transfer, Settings};
+
+  if (hasMicroSlate) {
+    menuItems.push_back(tr(STR_MICROSLATE));
+    menuIcons.push_back(Text);
+  }
 
   if (hasLibrarySlot()) {
     menuItems.insert(menuItems.begin() + 2, hasPlugins ? tr(STR_PLUGINS) : tr(STR_OPDS_BROWSER));

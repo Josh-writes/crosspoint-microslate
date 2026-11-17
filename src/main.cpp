@@ -45,6 +45,7 @@
 #include "activities/settings/SdFirmwareUpdateActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "microslate_switch.h"
 #include "platform/UsbSerialJtagHandoff.h"
 #include "util/ButtonNavigator.h"
 #include "util/PluginEvents.h"
@@ -60,6 +61,17 @@
 // Vector-font boards only: without TTF the stock loop stack has always sufficed,
 // and non-PSRAM boards need the 16KB back in DRAM.
 SET_LOOP_TASK_STACK_SIZE(24 * 1024)
+#endif
+
+// MicroSlate dual-boot marker: MicroSlate reads it from the other app slot to name and check this build.
+#if FREEINK_DEVICE_STICKY
+MS_SWITCH_APP("crosspoint", "CrossPoint", "sticky");
+#elif FREEINK_DEVICE_X4PRO
+MS_SWITCH_APP("crosspoint", "CrossPoint", "x4pro");
+#elif FREEINK_DEVICE_X4CLASSIC
+MS_SWITCH_APP("crosspoint", "CrossPoint", "x4c");
+#else
+MS_SWITCH_APP("crosspoint", "CrossPoint", "x4,x3");
 #endif
 
 GfxRenderer renderer(display);
@@ -565,6 +577,7 @@ void setupDisplayAndFonts(bool seamless = false) {
 
 void setup() {
   BoardConfig::holdPowerRails();
+  msswitch::begin();
 
 #ifdef ENABLE_SERIAL_LOG
 #ifdef CROSSPOINT_WAIT_FOR_USB_SERIAL
@@ -623,6 +636,9 @@ void setup() {
   // The Picco has no second app slot to flash into (partitions_picco.csv).
   const bool recoveryFirmwareMode = wakeupReason == HalGPIO::WakeupReason::PowerButton && !BoardConfig::isPaperMono() &&
                                     !BoardConfig::isPicco() && mappedInputManager.isPressed(recoveryButton);
+  // Next to MicroSlate the recovery combo opens MicroSlate instead of the SD flasher,
+  // which would overwrite MicroSlate (see microslate_switch.h).
+  if (recoveryFirmwareMode && !msswitch::selfUpdateAllowed()) msswitch::openMicroSlate();
 
   halTiltSensor.begin();
   halClock.begin();

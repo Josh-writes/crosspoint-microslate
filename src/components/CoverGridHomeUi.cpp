@@ -10,6 +10,7 @@
 
 #include "MappedInputManager.h"
 #include "UITheme.h"
+#include "UiAppHelpers.h"
 #include "icons/blocks.h"
 #include "icons/book.h"
 #include "icons/folder.h"
@@ -30,9 +31,10 @@ constexpr int COVER_ROW_EXTRA_HEIGHT = 8;
 CoverGridHomeUi::CoverGridHomeUi(GfxRenderer& renderer)
     : UiAppHost(renderer), coverCache(renderer), renderer(renderer) {}
 
-void CoverGridHomeUi::begin(const std::vector<RecentBook>& recent, bool opds, bool continuing) {
+void CoverGridHomeUi::begin(const std::vector<RecentBook>& recent, bool opds, bool continuing, bool microslate) {
   books = &recent;
   hasOpds = opds;
+  hasMicroSlate = microslate;
   hasContinueReading = continuing;
   if (!recent.empty()) coverCache.begin();
   resetUi();
@@ -285,8 +287,9 @@ void CoverGridHomeUi::drawGrid(UiScreen& screen) {
 void CoverGridHomeUi::drawTabs(UiScreen& screen, fui::Rect rect) {
   static constexpr const uint8_t* ICONS[] = {FolderIcon, LibraryIcon, BlocksIcon, TransferIcon, Settings2Icon};
   int count = 0;
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 6; ++i) {
     if (i == 2 && !hasOpds) continue;
+    if (i == 5 && !hasMicroSlate) continue;
     auto& tab = tabItems[count];
     tab.value = books->size() + count;
     tab.selected = selected == tab.value;
@@ -300,10 +303,15 @@ void CoverGridHomeUi::drawTabs(UiScreen& screen, fui::Rect rect) {
   tabs.inputMask = fui::InputTouch;
   tabs.iconSize = 32;
   tabs.iconPainterUserData = this;
-  tabs.iconPainter = [](fui::DrawTarget&, fui::Rect iconRect, const fui::TabItem& tab, uint8_t, void* user) {
+  tabs.iconPainter = [](fui::DrawTarget& target, fui::Rect iconRect, const fui::TabItem& tab, uint8_t, void* user) {
     const auto& self = *static_cast<CoverGridHomeUi*>(user);
     const int index = tab.value - static_cast<int>(self.books->size());
     const int icon = !self.hasOpds && index >= 2 ? index + 1 : index;
+    if (icon >= 5) {
+      // MicroSlate: the SDK's document icon (the legacy drawIcon set has no writing icon).
+      fui::drawBitmap(target, iconRect, listIconFor(UIIcon::Text, 32), fui::BitmapMode::Center);
+      return true;
+    }
     self.renderer.drawIcon(ICONS[icon], iconRect.x, iconRect.y, iconRect.width);
     return true;
   };

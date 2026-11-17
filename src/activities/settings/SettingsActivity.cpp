@@ -39,6 +39,7 @@
 #include "components/UIThemeTokens.h"
 #include "components/UiAppHelpers.h"
 #include "fontIds.h"
+#include "microslate_switch.h"
 #include "util/PluginEvents.h"
 
 namespace fui = freeink::ui;
@@ -142,7 +143,8 @@ void SettingsActivity::rebuildSettings() {
   // asset isn't published yet just report no update available. The Picco's
   // stock layout has one app slot (partitions_picco.csv), so it cannot update
   // itself either way.
-  if (!BoardConfig::isPicco()) {
+  // Next to MicroSlate, MicroSlate installs CrossPoint updates; CrossPoint's own would overwrite MicroSlate.
+  if (!BoardConfig::isPicco() && msswitch::selfUpdateAllowed()) {
     addAction(SettingsSection::General, StrId::STR_CHECK_UPDATES, SettingAction::CheckForUpdates);
     addAction(SettingsSection::General, StrId::STR_SD_FIRMWARE_UPDATE, SettingAction::SdFirmwareUpdate);
   }
